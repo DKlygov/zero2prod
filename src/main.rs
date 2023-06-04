@@ -1,5 +1,4 @@
-use secrecy::ExposeSecret;
-use sqlx::PgPool;
+use sqlx::postgres::PgPoolOptions;
 use std::{io::stdout, net::TcpListener};
 
 use zero2prod::{configuration::get_configuration, startup::run, telemetry::*};
@@ -10,12 +9,13 @@ async fn main() -> std::io::Result<()> {
     init_subscriber(sub);
 
     let config = get_configuration().expect("Failed to parse config");
-    let conn = PgPool::connect(config.database.connection_string().expose_secret())
-        .await
-        .expect("Failed to connect to database");
+    let conn = PgPoolOptions::new()
+        .acquire_timeout(std::time::Duration::from_secs(5))
+        .connect_lazy_with(config.database.with_db());
 
+    let addr = format!("{}:{}", config.application.host, config.application.port);
     run(
-        TcpListener::bind("127.0.0.1:8080").expect("Failed to bind port 8080"),
+        TcpListener::bind(addr).expect("Failed to bind port 8080"),
         conn,
     )
     .await?
