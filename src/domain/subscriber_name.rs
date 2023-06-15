@@ -12,7 +12,7 @@ impl SubscriberName {
         let too_long = name.graphemes(true).count() > Self::MAX_NAME_LENGTH;
         let contains_invalid = name.chars().any(|ch| Self::FORBIDDEN_CHARS.contains(&ch));
 
-        empty || too_long || contains_invalid
+        !(empty || too_long || contains_invalid)
     }
 
     pub fn parse(name: String) -> Result<SubscriberName, String> {

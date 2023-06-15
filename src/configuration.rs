@@ -5,6 +5,8 @@ use sqlx::{
     ConnectOptions,
 };
 use tracing::log::LevelFilter::Trace;
+
+use crate::{domain::SubscriberEmail, email_client::EmailClient};
 pub enum Environment {
     Local,
     Production,
@@ -38,6 +40,20 @@ impl TryFrom<String> for Environment {
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: AppliationSettings,
+    pub email_client: EmailClientSettings,
+}
+
+#[derive(serde::Deserialize)]
+pub struct EmailClientSettings {
+    pub base_url: String,
+    pub sender_email: String,
+    pub authorization_token: Secret<String>,
+}
+
+impl EmailClientSettings {
+    pub fn sender(&self) -> Result<SubscriberEmail, String> {
+        SubscriberEmail::parse(self.sender_email.clone())
+    }
 }
 
 #[derive(serde::Deserialize)]

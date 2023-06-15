@@ -9,3 +9,7 @@ database:
   password: "postgres"
   database_name: "postgres"
   require_ssl: true
+
+email_client:
+  base_url: "https://api.postmarkapp.com"
+  sender_email: "comething@gmail.com"

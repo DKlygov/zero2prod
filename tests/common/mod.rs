@@ -4,6 +4,7 @@ use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::TcpListener;
 use zero2prod::{
     configuration::{get_configuration, DatabaseSettings},
+    email_client::EmailClient,
     telemetry::{get_subscriber, init_subscriber},
 };
 
@@ -56,8 +57,17 @@ pub async fn spawn_app() -> App {
     config.database.database_name = uuid::Uuid::new_v4().to_string();
 
     let db_pool = configure_db(&config.database).await;
+    let sender_email = config
+        .email_client
+        .sender()
+        .expect("Invalid sender email address");
+    let email_client = EmailClient::new(
+        config.email_client.base_url,
+        sender_email,
+        config.email_client.authorization_token,
+    );
 
-    let srv = zero2prod::startup::run(listnener, db_pool.clone())
+    let srv = zero2prod::startup::run(listnener, db_pool.clone(), email_client)
         .await
         .expect("Failed to spawn our app.");
     let addr = format!("http://127.0.0.1:{}", port);
