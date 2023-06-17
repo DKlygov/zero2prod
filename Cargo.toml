@@ -31,7 +31,6 @@ tracing-actix-web = "0.7.5"
 serde-aux = "4.2.0"
 unicode-segmentation = "1.10.1"
 validator = "0.16.0"
-assertables = "7.0.1"
 rand = "0.8.5"
 reqwest = { version = "0.11.18", default-features = false, features = [
     "json",
@@ -57,3 +56,4 @@ fake = "2.6.1"
 quickcheck = "1.0.3"
 quickcheck_macros = "1.0.0"
 wiremock = "0.5"
+serde_json = "1"

@@ -8,7 +8,7 @@ use zero2prod::{
     telemetry::{get_subscriber, init_subscriber},
 };
 
-pub struct App {
+pub struct TestApp {
     pub addr: String,
     pub client: Client,
     pub db_pool: PgPool,
@@ -27,7 +27,7 @@ pub static TRACING: Lazy<()> = Lazy::new(|| {
     init_subscriber(sub);
 });
 
-pub async fn configure_db(config: &DatabaseSettings) -> PgPool {
+async fn configure_db(config: &DatabaseSettings) -> PgPool {
     let mut conn = PgConnection::connect_with(&config.without_db())
         .await
         .expect("Failed to connect to database");
@@ -48,7 +48,7 @@ pub async fn configure_db(config: &DatabaseSettings) -> PgPool {
     pool
 }
 
-pub async fn spawn_app() -> App {
+pub async fn spawn_app() -> TestApp {
     Lazy::force(&TRACING);
 
     let listnener = TcpListener::bind("127.0.0.1:0").expect("failed to bind port");
@@ -61,10 +61,13 @@ pub async fn spawn_app() -> App {
         .email_client
         .sender()
         .expect("Invalid sender email address");
+
+    let timeout = config.email_client.timeout();
     let email_client = EmailClient::new(
         config.email_client.base_url,
         sender_email,
         config.email_client.authorization_token,
+        timeout,
     );
 
     let srv = zero2prod::startup::run(listnener, db_pool.clone(), email_client)
@@ -74,7 +77,7 @@ pub async fn spawn_app() -> App {
 
     tokio::spawn(srv);
 
-    App {
+    TestApp {
         addr,
         client: reqwest::Client::new(),
         db_pool,

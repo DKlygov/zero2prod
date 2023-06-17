@@ -44,7 +44,7 @@ pub async fn insert_subscriber<'a>(pool: &PgPool, sub: &NewSubscriber) -> Result
 pub async fn subscribe(form: web::Form<FormData>, connection: web::Data<PgPool>) -> HttpResponse {
     let sub = match form.0.try_into() {
         Ok(sub) => sub,
-        Err(e) => return HttpResponse::BadRequest().finish(),
+        Err(_) => return HttpResponse::BadRequest().finish(),
     };
 
     match insert_subscriber(&connection, &sub).await {
